@@ -1,0 +1,4 @@
+set -e
+
+sudo zypper refresh
+sudo zypper dup --no-allow-vendor-change --details

@@ -1,0 +1,32 @@
+set -e
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m'
+
+(
+date
+
+firefox_url=$(curl -Ls -o /dev/null -w %{url_effective} 'https://download.mozilla.org/?product=firefox-latest-ssl&os=linux64&lang=en-US')
+echo -e ${GREEN}
+echo Downloading: $firefox_url
+
+firefox_sig_url=$firefox_url.asc
+echo Downloading signature: $firefox_sig_url
+echo -e ${NC}
+
+wget -N $firefox_url && \
+wget -N $firefox_sig_url && \
+gpg --verify $(basename $firefox_sig_url) $(basename $firefox_url) && \
+echo && \
+(pkill -U $(whoami) firefox || true) && \
+tar -xvf $(basename $firefox_url) && \
+echo -e ${GREEN} && \
+firefox/firefox --version && \
+echo -e ${NC} || \
+echo -e "${RED}Failed to update Firefox${NC}" && \
+echo
+
+) 2>&1 | tee -a update.log
+
+
