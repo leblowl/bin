@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+# Sort ag results by last modified timestamp descending and line number ascending
+ag $@ \
+| awk -F: '{ "date -r "$1" +%s" | getline d; print d":"$0 }' \
+| sort -t: -k 1,2r -k 3,4n \
+| cut -f 1 -d ':' --complement
+

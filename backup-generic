@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+
+set -e
+
+src_root=$1
+src=$2
+archive=$3
+
+echo "Ensuring backup directory structure..."
+mkdir -p $(dirname $archive)
+
+echo "Creating archive $archive from file $src in dir $src_root..."
+
+# --alter=atime: Don't let dar mess with atimes (default)
+# --empty-dir (-D): Store excluded dirs as empty dirs
+# --fs-root (-R): Root directory to archive
+# --noconf: Do not try to read ~/.darrc or /etc/darrc conf files
+# --create: Create archive at this path
+# --slice: Slice archive at this size
+# --prune (-P): Drop these paths from the archive
+# --go-into (-g): Only these paths from the archive
+# --key (-K): Encryption algo & key
+time dar \
+    --verbose=messages \
+    --verbose=finished \
+    --execute "par2 c -r10 \"%p/%b.%n.par2\" \"%p/%b.%n.%e\"" \
+    --alter=atime \
+    --fs-root $src_root \
+    --noconf \
+    --create $archive \
+    --slice 200M \
+    --hash sha512 \
+    -K aes: \
+    -g $src
+
+echo ""
+echo "Clearing buffers"
+sync
+echo 3 > /proc/sys/vm/drop_caches
+sleep 4;
+ 
+echo "Checking archive hash..."
+# Note this won't work for multiple slices...
+(cd $archive_dir && sha512sum -c $archive.1.dar.sha512)
+
+echo "Testing archive..."
+dar -K aes: -t $archive
+
+echo "Clearing buffers"
+sync
+echo 3 > /proc/sys/vm/drop_caches
+sleep 4;
+
+echo "Diffing archive and original..."
+dar -K aes: -d $archive -R $src_root
+
+echo "Clearing buffers"
+sync
+echo 3 > /proc/sys/vm/drop_caches
+sleep 4;
