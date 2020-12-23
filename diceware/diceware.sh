@@ -16,9 +16,9 @@ do
   pass[$i]="$(sed "${num}q;d" diceware.wordlist)"
 done
 
-for i in $(seq $(($reps + 1)) $(($reps + $extra)))
+for i in $(seq 1 $extra)
 do
-  pass[$i]=$(($(od -vAn -N2 -tu2 < /dev/urandom) % 1000))
+  pass[$(($reps + $i))]=$(($(od -vAn -N2 -tu2 < /dev/urandom) % 1000))
 done
 
 echo $( IFS=$sep ; echo "${pass[*]}" )
