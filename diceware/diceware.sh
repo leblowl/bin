@@ -12,7 +12,7 @@ echo "Generating phrase with $reps repetitions and \"$sep\" seperator, plus $ext
 
 for i in $(seq 1 $reps)
 do
-  num=$(($(od -vAn -N2 -tu2 < /dev/urandom) % 1000))
+  num=$((($(od -vAn -N2 -tu2 < /dev/urandom) % 7776) + 1))
   pass[$i]="$(sed "${num}q;d" diceware.wordlist)"
 done
 
